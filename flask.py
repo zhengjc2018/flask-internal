@@ -2,12 +2,19 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalStack, LocalProxy
 
 
+class FlaskRequest(Request):
+    pass
+
+
 class _RequestContext(object):
     def __init__(self, app, environ):
         self.app = app
+        self.request = app.request_class(environ)
 
 
 class Flask(object):
+    request_class = FlaskRequest
+
     def __init__(self, name):
         self.debug = False
         self.name = name
@@ -15,7 +22,6 @@ class Flask(object):
     def wsgi_app(self, environ, start_response):
         _request_ctx_stack.push(_RequestContext(self, environ))
         try:
-            request = Request(environ)
             response = Response('[%s] hello %s' % (
                 current_app.name, request.args.get('name', 'world')),
                 mimetype='text/plain')
@@ -37,6 +43,7 @@ class Flask(object):
 
 _request_ctx_stack = LocalStack()
 current_app = LocalProxy(lambda: _request_ctx_stack.top.app)
+request = LocalProxy(lambda: _request_ctx_stack.top.request)
 
 if __name__ == '__main__':
     app = Flask(__name__)
