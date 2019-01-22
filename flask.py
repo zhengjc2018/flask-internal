@@ -1,4 +1,4 @@
-from werkzeug.wrappers import Response
+from werkzeug.wrappers import Request, Response
 
 
 class Flask(object):
@@ -6,7 +6,9 @@ class Flask(object):
         pass
 
     def wsgi_app(self, environ, start_response):
-        response = Response('hello world', mimetype='text/plain')
+        request = Request(environ)
+        response = Response('hello %s' % request.args.get('name', 'world'),
+                            mimetype='text/plain')
         return response(environ, start_response)
 
     def __call__(self, environ, start_response):
