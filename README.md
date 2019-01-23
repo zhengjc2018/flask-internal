@@ -2,5 +2,5 @@
 
 This is a demo project only for training and practice.
 
-[Werkzeug Doc](http://werkzeug.pocoo.org/docs/)http://flask.pocoo.org/docs/1.0/
+[Werkzeug Doc](http://werkzeug.pocoo.org/docs/)
 [Flask Doc](http://flask.pocoo.org/docs)
