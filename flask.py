@@ -1,6 +1,7 @@
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalStack, LocalProxy
 from werkzeug.routing import Map, Rule
+from werkzeug.contrib.securecookie import SecureCookie
 
 
 class FlaskRequest(Request):
@@ -15,12 +16,16 @@ class _RequestContext(object):
     def __init__(self, app, environ):
         self.app = app
         self.request = app.request_class(environ)
+        self.session = app.open_session(self.request)
         self.url_adapter = app.url_map.bind_to_environ(environ)
 
 
 class Flask(object):
     request_class = FlaskRequest
     response_class = FlaskResponse
+
+    secret_key = None
+    session_cookie_name = 'flask_session'
 
     def __init__(self, name):
         self.debug = False
@@ -31,6 +36,21 @@ class Flask(object):
     def dispatch_request(self):
         endpoint, values = _request_ctx_stack.top.url_adapter.match()
         return self.view_functions[endpoint](**values)
+
+    def make_response(self, response):
+        session = _request_ctx_stack.top.session
+        self.save_session(session, response)
+        return response
+
+    def open_session(self, request):
+        if self.secret_key is not None:
+            return SecureCookie.load_cookie(request,
+                                            key=self.session_cookie_name,
+                                            secret_key=self.secret_key)
+
+    def save_session(self, session, response):
+        if session is not None:
+            session.save_cookie(response, key=self.session_cookie_name)
 
     def route(self, rule, **options):
         def decorator(f):
@@ -46,6 +66,7 @@ class Flask(object):
         try:
             rv = self.dispatch_request()
             response = self.response_class(rv)
+            response = self.make_response(response)
             return response(environ, start_response)
         finally:
             _request_ctx_stack.pop()
@@ -68,6 +89,7 @@ request = LocalProxy(lambda: _request_ctx_stack.top.request)
 
 if __name__ == '__main__':
     app = Flask(__name__)
+    app.secret_key = 'this_is_secret_key'
 
     @app.route('/hello/<name>', methods=['GET'])
     def hello(name):
