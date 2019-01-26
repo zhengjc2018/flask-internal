@@ -21,44 +21,41 @@ class Proxy(object):
         delattr(self._get_current_object(), name)
 
 
-class User(object):
-    def __init__(self, name):
-        self.name = name
-        self.langs = []
+class Car(object):
+    def __init__(self, brand, models=None):
+        self.brand = brand
+        self.models = [] if models is None else models
 
 
 class Stack(object):
     def __init__(self):
-        self._list = []
+        self.items = []
 
     def push(self, obj):
-        self._list.append(obj)
+        self.items.append(obj)
 
     def pop(self):
-        self._list.pop()
+        return self.items.pop()
 
     @property
     def top(self):
-        if len(self._list) > 0:
-            return self._list[len(self._list)-1]
-        else:
-            return None
+        return self.items[len(self.items)-1]
 
 
-user = User('foo')
-langs = Proxy(user, 'langs')
-langs.append('en')
-langs.append('cn')
-print(user.langs)
+car = Car('BMW', ['X1'])
+models = Proxy(car, 'models')
+print(car.models)
+car.models = ['X5']
+print(car.models)
 
-users = Stack()
-user_foo = User('foo')
-user_foo.langs.append('cn')
-users.push(user_foo)
-user_bar = User('bar')
-user_bar.langs.append('en')
-users.push(user_bar)
-current_user = Proxy(lambda: users.top)
-print(current_user.name, current_user.langs)
-users.pop()
-print(current_user.name, current_user.langs)
+cars = Stack()
+current_car = Proxy(lambda: cars.top)
+car_foo = Car('BMW')
+car_foo.models.append('X1')
+cars.push(car_foo)
+car_bar = Car('TESLA')
+car_bar.models.append('S')
+cars.push(car_bar)
+print(current_car.brand, current_car.models)
+cars.pop()
+print(current_car.brand, current_car.models)
