@@ -20,6 +20,9 @@ class Proxy(object):
     def __delattr__(self, name):
         delattr(self._get_current_object(), name)
 
+    def __str__(self):
+        return str(self._get_current_object())
+
 
 class Car(object):
     def __init__(self, brand, models=None):
@@ -44,9 +47,9 @@ class Stack(object):
 
 car = Car('BMW', ['X1'])
 models = Proxy(car, 'models')
-print(car.models)
+print(models)
 car.models = ['X5']
-print(car.models)
+print(models)
 
 cars = Stack()
 current_car = Proxy(lambda: cars.top)
