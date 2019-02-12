@@ -118,7 +118,7 @@ if __name__ == '__main__':
     # 参考：
     # http://werkzeug.pocoo.org/docs/test/
     client = app.test_client()
-    client.get('/hello/bar').data == b'hello bar'
+    assert client.get('/hello/bar').data == b'hello bar'
 
     with app.test_request_context('/name/foo'):
         assert hello('foo') == 'hello foo'

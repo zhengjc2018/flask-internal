@@ -57,14 +57,15 @@ class Flask(object):
         self.url_map = Map()
         self.view_functions = {}
         self.config = {}
-        self.blueprints = {}
+        # self.blueprints = {}
 
     def dispatch_request(self):
         endpoint, values = _request_ctx_stack.top.url_adapter.match()
         return self.view_functions[endpoint](**values)
 
     def register_blueprint(self, blueprint, **options):
-        self.blueprints[blueprint.name] = blueprint
+        # self.blueprints[blueprint.name] = blueprint
+        # print('register_blueprint:%s' % self.blueprints)
         blueprint.register(self, **options)
 
     def add_url_rule(self, rule, endpoint, view_func, **options):
@@ -74,6 +75,7 @@ class Flask(object):
 
     def route(self, rule, **options):
         def decorator(f):
+            print('route:%s' % f.__name__)
             endpoint = options.pop('endpoint', f.__name__)
             self.add_url_rule(rule, endpoint, f, **options)
             return f
@@ -114,6 +116,7 @@ class Flask(object):
             return response(environ, start_response)
 
     def __call__(self, environ, start_response):
+        print('__call__')
         return self.wsgi_app(environ, start_response)
 
     def run(self, host='localhost', port=5000, **options):
@@ -137,6 +140,7 @@ class BlueprintSetupState(object):
     def add_url_rule(self, rule, endpoint, view_func, **options):
         rule = '/'.join((self.url_prefix, rule.lstrip('/')))
         endpoint = '%s.%s' % (self.blueprint.name, endpoint)
+        print('blueprint add_url_rule:%s, endpoint:%s' % (rule, endpoint))
         self.app.add_url_rule(rule, endpoint, view_func, **options)
 
 
@@ -146,11 +150,13 @@ class Blueprint(object):
         self.deferred_functions = []
 
     def register(self, app, **options):
+        print('deferred_functions:%s' % self.deferred_functions)
         state = BlueprintSetupState(self, app, **options)
         for deferred in self.deferred_functions:
             deferred(state)
 
     def record(self, func):
+        print('func:%s' % func)
         self.deferred_functions.append(func)
 
     def add_url_rule(self, rule, endpoint, view_func, **options):
@@ -159,6 +165,7 @@ class Blueprint(object):
 
     def route(self, rule, **options):
         def decorator(f):
+            print('blueprint route:%s' % f.__name__)
             endpoint = options.pop("endpoint", f.__name__)
             self.add_url_rule(rule, endpoint, f, **options)
             return f
@@ -189,5 +196,9 @@ if __name__ == '__main__':
         return '[app] hello %s' % user
 
     app.register_blueprint(bp)
+
+    print('view_functions: %s' % app.view_functions, '\n'*2,
+          # 'blueprints: %s' % app.blueprints, '\n'*2,
+          'url_map: %s' % app.url_map, '\n')
 
     app.run('0.0.0.0', 5000, debug=True)

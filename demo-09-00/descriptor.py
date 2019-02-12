@@ -5,6 +5,7 @@ class ConfigAttribute(object):
     def __get__(self, obj, type=None):
         if obj is None:
             return self
+        # print(obj.config, '\n')
         rv = obj.config[self.__name__]
         return rv
 

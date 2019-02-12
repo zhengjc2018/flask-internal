@@ -4,6 +4,7 @@ class Proxy(object):
         object.__setattr__(self, '__name__', name)
 
     def _get_current_object(self):
+        print(self.__local)
         if callable(self.__local):
             return self.__local()
         try:

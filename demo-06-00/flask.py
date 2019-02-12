@@ -1,6 +1,7 @@
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.contrib.securecookie import SecureCookie
+from ico import HTML_TEMPLATE
 
 # 参考：
 # http://werkzeug.pocoo.org/docs/contrib/securecookie/
@@ -27,8 +28,15 @@ class Flask(object):
         self.view_functions = {}
 
     def dispatch_request(self, environ):
+        """
+        url_map:Map([<Rule '/favicon.ico' (HEAD, GET) -> favicon>,
+                     <Rule '/hello/<user>' (HEAD, GET) -> hello>])
+        endpoint:hello ,
+        values:{'user': 'zjc'}
+        """
         url_adapter = self.url_map.bind_to_environ(environ)
         endpoint, values = url_adapter.match()
+        print('endpoint:%s, values:%s' % (endpoint, values))
         return self.view_functions[endpoint](**values)
 
     def route(self, rule, **options):
@@ -40,6 +48,13 @@ class Flask(object):
         return decorator
 
     def open_session(self, request):
+        '''
+        load_cookie:
+        data = request.cookies.get(key)
+        if not data:
+            return cls(secret_key=secret_key)
+        return cls.unserialize(data, secret_key)
+        '''
         return SecureCookie.load_cookie(request,
                                         key=self.session_cookie_name,
                                         secret_key=self.secret_key)
@@ -82,9 +97,10 @@ if __name__ == '__main__':
 
     @app.route('/favicon.ico', methods=['GET'])
     def favicon():
-        return '🙈'
+        return HTML_TEMPLATE
+        # return '🙈'
 
-    @app.route('/hello/<user>', methods=['GET'])
+    @app.route('/hello/<user>', methods=['GET'], endpoint='he')
     def hello(user):
         # session 对象需要通过参数透传到这里才能使用 :(
         return 'hello %s' % user

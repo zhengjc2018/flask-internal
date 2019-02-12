@@ -52,6 +52,7 @@ class Flask(object):
 
     def route(self, rule, **options):
         def decorator(f):
+            print(1)
             endpoint = options.setdefault('endpoint', f.__name__)
             self.url_map.add(Rule(rule, **options))
             self.view_functions[endpoint] = f
@@ -85,12 +86,14 @@ class Flask(object):
             return response(environ, start_response)
 
     def __call__(self, environ, start_response):
+        print(3)
         return self.wsgi_app(environ, start_response)
 
     def run(self, host='localhost', port=5000, **options):
         if 'debug' in options:
             self.debug = options.pop('debug')
 
+        print(2)
         options.setdefault('use_reloader', self.debug)
         options.setdefault('use_debugger', self.debug)
 
@@ -109,5 +112,10 @@ if __name__ == '__main__':
     def hello(user):
         session['user'] = user
         return 'hello %s' % user
+
+    # @app.route('/bye/<user>', methods=['GET'])
+    # def bye(user):
+    #     session['user'] = user
+    #     return 'goodbye %s' % user
 
     app.run('0.0.0.0', 5000, debug=True)
